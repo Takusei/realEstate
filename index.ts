@@ -13,13 +13,15 @@ console.log(`Max page number: ${maxPageNumber}`);
 
 progressBar.start(maxPageNumber, 0);
 
-const items = []
-for (let i = 1; i <= maxPageNumber; i++) {
-    progressBar.increment();
-    const data = await scrapePage(process.env.START_PATH + `&pn=${i}`)
-    items.push(...data);
-}
+const items = await Promise.all(
+    Array.from({ length: maxPageNumber }, (_, i) => i + 1)
+        .map(async (i) => {
+            progressBar.increment();
+            const data = await scrapePage(process.env.START_PATH + `&pn=${i}`);
+            return data;
+        })
+);
 
-fs.writeFileSync(`/home/jaycen/workspace/realEstate/result/data.json`, JSON.stringify(items));
+fs.writeFileSync(`/home/jaycen/workspace/realEstate/result/data.json`, JSON.stringify(items.flat()));
 
 progressBar.stop();
