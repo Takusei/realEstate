@@ -1,35 +1,25 @@
-const axios = require('axios');
-const jsdom = require('jsdom');
-const { JSDOM } = jsdom;
-import getItemDetails from "./lib/details";
+import scrapePage from './lib/scrape';
+import { getNumbers } from './lib/number';
+import { sleep } from 'bun';
+const cliProgress = require('cli-progress');
+import fs from 'fs';
 
-async function scrapePage(url) {
-    try {
-        const response = await axios.get(url);
-        const htmlContent = response.data;
+const progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
 
-        // Parse HTML using jsdom
-        const dom = new JSDOM(htmlContent);
-        const document = dom.window.document;
+const { totalItems, maxPageNumber} = await getNumbers();
 
-        const dataSamples = [];
+console.log(`Total items: ${totalItems}`);
+console.log(`Max page number: ${maxPageNumber}`);
 
-        // Find all elements with class 'cassette js-bukkenCassette'
-        const mother = document.querySelectorAll('.cassette.js-bukkenCassette');
+progressBar.start(maxPageNumber, 0);
 
-        // Loop through each element
-        mother.forEach(child => {
-            dataSamples.push(getItemDetails(child));
-        });
-
-        return dataSamples;
-    } catch (error) {
-        console.error('Error:', error.message);
-        return [];
-    }
+const items = []
+for (let i = 1; i <= maxPageNumber; i++) {
+    progressBar.increment();
+    const data = await scrapePage(process.env.START_PATH + `&pn=${i}`)
+    items.push(...data);
 }
 
-const url = 'https://suumo.jp/jj/common/ichiran/JJ901FC004/?initFlg=1&seniFlg=1&pc=30&ar=030&ra=030013&rnTmp=0215&kb=0&xb=0&newflg=0&km=1&rn=0215&bs=010&bs=011&bs=020';
-scrapePage(url)
-    .then(data => console.log(data))
-    .catch(error => console.error(error));
+fs.writeFileSync(`/home/jaycen/workspace/realEstate/result/data.json`, JSON.stringify(items));
+
+progressBar.stop();
