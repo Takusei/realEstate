@@ -18,7 +18,7 @@ class ItemInfo {
         this.station = station;
         this.description = description;
         this.image = image;
-        this.url = url;
+        this.url = process.env.BASE_PATH + url;
         this.price = price;
         this.size = size;
         this.age = age;
