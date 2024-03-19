@@ -7,6 +7,9 @@ WORKDIR /usr/src/app
 # Copy everything from the current directory into Docker's /usr/src/app
 COPY . .
 
+# Set the timezone to JST
+ENV TZ=Asia/Tokyo
+
 RUN bun install
 
 # Run the project
