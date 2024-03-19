@@ -1,10 +1,10 @@
-const axios = require('axios');
-const jsdom = require('jsdom');
-const { JSDOM } = jsdom;
+import axios from 'axios';
+import { JSDOM } from 'jsdom';
+import logger from './logger';
 
 import getItemDetails from "./details";
 
-async function scrapePage(url) {
+async function scrapePage(url: string) {
     try {
         const response = await axios.get(url);
         const htmlContent = response.data;
@@ -13,19 +13,19 @@ async function scrapePage(url) {
         const dom = new JSDOM(htmlContent);
         const document = dom.window.document;
 
-        const items = [];
+        const items: any = [];
 
         // Find all elements with class 'cassette js-bukkenCassette'
         const mother = document.querySelectorAll('.cassette.js-bukkenCassette');
 
         // Loop through each element
-        mother.forEach(child => {
+        mother.forEach((child: any) => {
             items.push(getItemDetails(child));
         });
 
         return items;
     } catch (error) {
-        console.error('Error:', error.message);
+        logger.error(`Error scraping ${url}: ${error}`);
         return [];
     }
 }

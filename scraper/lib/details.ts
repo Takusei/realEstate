@@ -1,19 +1,19 @@
 import ItemInfo from "./itemInfo";
 
-const getInfoFromTable = (item) => {
+const getInfoFromTable = (item: any) => {
     const tableInfo: string[] = []
     const firstTableRows = item.querySelectorAll('.infodatabox-boxgroup .listtable:nth-of-type(1) tbody tr');
-    firstTableRows.forEach((row) => {
+    firstTableRows.forEach((row: any) => {
         const cells = row.querySelectorAll('td'); 
-        cells.forEach((cell) => { 
+        cells.forEach((cell: any) => { 
             tableInfo.push(cell.textContent.trim().replace(/\s+/g, ' ')); // Remove extra whitespace
         });
     });
 
     const secondTableRows = item.querySelectorAll('.infodatabox-boxgroup .listtable:nth-of-type(2) tbody tr');
-    secondTableRows.forEach(row => {
+    secondTableRows.forEach((row: any) => {
         const cells = row.querySelectorAll('td');
-        cells.forEach(cell => {
+        cells.forEach((cell: any) => {
             tableInfo.push(cell.textContent.trim().replace(/\s+/g, ' ')); // Remove extra whitespace
         });
     });

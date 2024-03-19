@@ -16,13 +16,13 @@ const items = await Promise.all(
         }) 
 );
 
-const uri = 'mongodb://admin:password@localhost:27017/?authSource=admin';
+const uri = process.env.MONGO_URI || '';
 const client = new MongoClient(uri);
 
 const run = async () => {
     try {
-      const database = client.db('suumo');
-      const suumo = database.collection('suumo');
+      const database = client.db(process.env.MONGO_DB_NAME || '');
+      const suumo = database.collection(process.env.MONGO_COLLECTION_NAME || '');
       await suumo.insertMany(items.flat());
     } finally {
       await client.close();

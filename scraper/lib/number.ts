@@ -1,8 +1,7 @@
-const axios = require('axios');
-const jsdom = require('jsdom');
-const { JSDOM } = jsdom;
+import axios from 'axios';
+import { JSDOM } from 'jsdom';
 
-const getItemNumber = (document) => {
+const getItemNumber = (document: any) => {
     let totalItems = 0;
 
     const totalItemsElement = document.querySelector('.pagination_set-hit');
@@ -16,7 +15,7 @@ const getItemNumber = (document) => {
     return totalItems
 }
 
-const getMaxPageNumber = (document) => {
+const getMaxPageNumber = (document: any) => {
     let maxPageNumber = 0;
 
     const maxPageLinkElement = document.querySelector('.pagination-parts li:last-child a');

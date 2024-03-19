@@ -12,6 +12,7 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "@types/jsdom": "^21.1.6",
     "axios": "^1.6.7",
     "eslint": "^8.57.0",
     "got": "^14.2.1",
