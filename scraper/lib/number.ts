@@ -30,7 +30,8 @@ const getMaxPageNumber = (document: any) => {
 }
 
 const getNumbers = async () => {
-    const response = await axios.get(process.env.START_PATH);
+    const startPath = process.env.START_PATH || '';
+    const response = await axios.get(startPath);
     const htmlContent = response.data;
 
     // Parse HTML using jsdom

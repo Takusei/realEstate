@@ -6,7 +6,14 @@
     "dev": "bun run index.ts"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "eslint": "^8.57.0",
+    "eslint-config-standard-with-typescript": "^43.0.1",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-n": "^16.6.2",
+    "eslint-plugin-promise": "^6.1.1",
+    "typescript": "^5.4.2"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
@@ -14,10 +21,10 @@
   "dependencies": {
     "@types/jsdom": "^21.1.6",
     "axios": "^1.6.7",
-    "eslint": "^8.57.0",
     "got": "^14.2.1",
     "jsdom": "^24.0.0",
     "mongodb": "^6.5.0",
+    "node-cron": "^3.0.3",
     "pino": "^8.19.0",
     "pino-pretty": "^10.3.1"
   }
