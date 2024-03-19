@@ -21,6 +21,7 @@ const crawler = async (): Promise<void> => {
 
     const database = client.db(process.env.MONGO_DB_NAME ?? '')
     const collection = database.collection(process.env.MONGO_COLLECTION_NAME ?? '')
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     await collection.insertMany(items.flat())
   } finally {
     await client.close()
