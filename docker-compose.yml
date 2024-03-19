@@ -16,13 +16,13 @@ services:
       - ./mongodb/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
       - ./mongodb/data:/data/db\
 
-scraper:
-  build:
-    context: ./scraper
-    dockerfile: ./docker/Dockerfile
-  container_name: suumo-scraper
-  restart: always
-  environment:
-    TZ: Asia/Tokyo
-  depends_on:
-    - mongodb
+  scraper:
+    build:
+      context: ./scraper
+      dockerfile: ./docker/Dockerfile
+    container_name: suumo-scraper
+    restart: always
+    environment:
+      TZ: Asia/Tokyo
+    depends_on:
+      - mongodb
