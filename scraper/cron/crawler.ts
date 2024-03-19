@@ -3,7 +3,7 @@ import { getNumbers } from '../lib/number'
 import client from '../lib/client'
 import logger from '../lib/logger'
 
-const crawler = async () => {
+const crawler = async (): Promise<void> => {
   logger.info('Crawler is scraping and saving to the database...')
   try {
     const { totalItems, maxPageNumber } = await getNumbers()
@@ -19,8 +19,8 @@ const crawler = async () => {
         })
     )
 
-    const database = client.db(process.env.MONGO_DB_NAME || '')
-    const collection = database.collection(process.env.MONGO_COLLECTION_NAME || '')
+    const database = client.db(process.env.MONGO_DB_NAME ?? '')
+    const collection = database.collection(process.env.MONGO_COLLECTION_NAME ?? '')
     await collection.insertMany(items.flat())
   } finally {
     await client.close()
