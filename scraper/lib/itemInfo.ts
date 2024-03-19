@@ -9,6 +9,7 @@ class ItemInfo {
     price: string;
     size: string;
     age: string;
+    updateDate: Date;
 
     constructor(catalog: string, name: string, address: string, station: string, description: string, image: string, url: string, price: string, size: string, age: string) {
         this.category = catalog;
@@ -21,6 +22,7 @@ class ItemInfo {
         this.price = price;
         this.size = size;
         this.age = age;
+        this.updateDate = new Date();
     }
 }
 
