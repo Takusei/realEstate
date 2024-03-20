@@ -1,0 +1,103 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: realestate
+  namespace: realestate
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose.yml -n realestate -o deployment.yaml
+    kompose.version: 1.32.0 (765fde254)
+  labels:
+    io.kompose.service: mongodb
+  name: mongodb
+  namespace: realestate
+spec:
+  ports:
+    - name: "27017"
+      port: 27017
+      targetPort: 27017
+  selector:
+    io.kompose.service: mongodb
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose.yml -n realestate -o deployment.yaml
+    kompose.version: 1.32.0 (765fde254)
+  labels:
+    io.kompose.service: mongodb
+  name: mongodb
+  namespace: realestate
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: mongodb
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose.yml -n realestate -o deployment.yaml
+        kompose.version: 1.32.0 (765fde254)
+      labels:
+        io.kompose.network/realestate-default: "true"
+        io.kompose.service: mongodb
+    spec:
+      containers:
+        - env:
+            - name: MONGO_INITDB_DATABASE
+              value: suumo
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              value: password
+            - name: MONGO_INITDB_ROOT_USERNAME
+              value: admin
+            - name: TZ
+              value: Asia/Tokyo
+          image: mongo:latest
+          name: mongodb
+          ports:
+            - containerPort: 27017
+              hostPort: 27017
+              protocol: TCP
+      restartPolicy: Always
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose.yml -n realestate -o deployment.yaml
+    kompose.version: 1.32.0 (765fde254)
+  labels:
+    io.kompose.service: scraper
+  name: scraper
+  namespace: realestate
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: scraper
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose.yml -n realestate -o deployment.yaml
+        kompose.version: 1.32.0 (765fde254)
+      labels:
+        io.kompose.network/realestate-default: "true"
+        io.kompose.service: scraper
+    spec:
+      containers:
+        - env:
+            - name: TZ
+              value: Asia/Tokyo
+          image: suumo-scraper
+          name: suumo-scraper
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+
