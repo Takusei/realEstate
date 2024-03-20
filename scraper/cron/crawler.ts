@@ -4,12 +4,11 @@ import client from '../lib/client'
 import logger from '../lib/logger'
 
 const crawler = async (): Promise<void> => {
-  logger.info('Crawler is scraping and saving to the database...')
+  logger.info('Start: Crawler is scraping and saving to the database...')
   try {
     const { totalItems, maxPageNumber } = await getNumbers()
 
-    logger.info(`Total items: ${totalItems}`)
-    logger.info(`Max page number: ${maxPageNumber}`)
+    logger.info(`Processing: total items: ${totalItems}, and max page number: ${maxPageNumber}`)
 
     const items = await Promise.all(
       Array.from({ length: maxPageNumber }, (_, i) => i + 1)
@@ -23,10 +22,10 @@ const crawler = async (): Promise<void> => {
     const collection = database.collection(process.env.MONGO_COLLECTION_NAME ?? '')
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     await collection.insertMany(items.flat())
-  } finally {
-    await client.close()
+  } catch (error) {
+    logger.error(`Error: Error scraping and saving to the database: ${error}`)
   }
-  logger.info('Crawler has finished scraping and saving to the database.')
+  logger.info('Finished: Crawler has finished scraping and saved to the database.')
 }
 
 export default crawler

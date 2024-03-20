@@ -6,10 +6,7 @@ const schedule = process.env.CRON_SCHEDULE ?? '* */1 * * * *'
 
 logger.info(`Cron job is scheduled to run at ${schedule}`)
 
+// eslint-disable-next-line @typescript-eslint/no-misused-promises
 cron.schedule(schedule, async () => {
-  logger.info('Scraping Suumo to get the latest items...')
-
   await crawler()
-
-  logger.info('Suumo items have been scraped and saved to the database.')
 })
