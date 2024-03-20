@@ -20,6 +20,7 @@ services:
     build:
       context: ./scraper
       dockerfile: ./docker/Dockerfile
+    image: suumo-scraper
     container_name: suumo-scraper
     restart: always
     environment:
