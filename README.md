@@ -21,6 +21,9 @@ kubectl apply -f deployment.yaml
 
 # Verify it has been deployed
 kubectl -n realestate get all
+
+# Check mongodb data
+kubectl -n realestate port-forward deployments/mongodb 27017:27017
 ```
 
 ## Tips

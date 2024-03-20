@@ -26,6 +26,6 @@ services:
     environment:
       TZ: Asia/Tokyo
       MONGO_URI: mongodb://admin:password@mongodb:27017/?authSource=admin
-      CRON_SCHEDULE: "* */5 * * * *"
+      CRON_SCHEDULE: "*/5 * * * *"
     depends_on:
       - mongodb
