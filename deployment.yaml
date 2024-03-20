@@ -96,6 +96,10 @@ spec:
         - env:
             - name: TZ
               value: Asia/Tokyo
+            - name: MONGO_URI
+              value: mongodb://admin:password@mongodb.realestate.svc.cluster.local:27017/?authSource=admin
+            - name: CRON_SCHEDULE
+              value: "* */5 * * * *"
           image: suumo-scraper
           name: suumo-scraper
           imagePullPolicy: IfNotPresent

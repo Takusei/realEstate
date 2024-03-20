@@ -20,11 +20,18 @@ minikube load suumo-scraper
 kubectl apply -f deployment.yaml
 ```
 
-# Tips
+## Tips
 ```
 # Remove all build volumes and containers
 docker rm -vf $(docker ps -aq)
 
 # Remove all built images
 docker rmi -f $(docker images -aq)
+```
+## Note
+For local, docker, k8s, we have to give MONGO_URI different string to get mongodb rui:
+```
+local: localhost
+docker: host.docker.internal or mongodb (using the service name in docker compose)
+k9s: mongodb.realestate.svc.cluster.local
 ```
