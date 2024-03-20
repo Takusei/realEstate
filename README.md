@@ -14,10 +14,13 @@ Before run this command below, please make sure the necessary is already built i
 docker build -f ./scraper/docker/Dockerfile -t suumo-scraper:latest ./scraper/. --no-cache
 
 # Load image to minikube if you are using it
-minikube load suumo-scraper
+minikube image load suumo-scraper
 
 # The deployment file is created from docker-compose.yaml by `kompose`
 kubectl apply -f deployment.yaml
+
+# Verify it has been deployed
+kubectl -n realestate get all
 ```
 
 ## Tips
@@ -35,3 +38,6 @@ local: localhost
 docker: host.docker.internal or mongodb (using the service name in docker compose)
 k9s: mongodb.realestate.svc.cluster.local
 ```
+
+# Access
+Access mongodb with `mongodb://admin:password@localhost:27017/suumo?authSource=admin`
