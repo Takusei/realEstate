@@ -34,6 +34,10 @@ docker rm -vf $(docker ps -aq)
 # Remove all built images
 docker rmi -f $(docker images -aq)
 ```
+
+# Access
+Access mongodb with `mongodb://admin:password@localhost:27017/suumo?authSource=admin`
+
 ## Note
 For local, docker, k8s, we have to give MONGO_URI different string to get mongodb rui:
 ```
@@ -41,6 +45,3 @@ local: localhost
 docker: host.docker.internal or mongodb (using the service name in docker compose)
 k9s: mongodb.realestate.svc.cluster.local
 ```
-
-# Access
-Access mongodb with `mongodb://admin:password@localhost:27017/suumo?authSource=admin`
