@@ -1,5 +1,7 @@
 # Introduction
 This repo is for crawl data from some suumo pages, and save it into `mongodb` for future use.
+![Screenshot 2024-03-20 135657](https://github.com/Takusei/realEstate/assets/45616321/84d652c7-fbdd-4a07-b513-50af99debd5e)
+
 
 # Deploy
 ## How to run this in docker?
