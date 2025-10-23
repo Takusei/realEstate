@@ -7,6 +7,9 @@ WORKDIR /usr/src/app
 # Copy everything from the current directory into Docker's /usr/src/app
 COPY . .
 
+# Delete .env file if it exists (we will use GCP Secrets instead)
+RUN rm -f .env
+
 # Set the timezone to JST
 ENV TZ=Asia/Tokyo
 
