@@ -22,10 +22,12 @@ const crawler = async (): Promise<void> => {
     const collection = database.collection(process.env.MONGO_COLLECTION_NAME ?? '')
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     await collection.insertMany(items.flat())
+    logger.info('Finished: Crawler has finished scraping and saved to the database.')
   } catch (error) {
     logger.error(`Error: Error scraping and saving to the database: ${error}`)
+    // Re-throw the error so the caller (main function) can catch it
+    throw error
   }
-  logger.info('Finished: Crawler has finished scraping and saved to the database.')
 }
 
 export default crawler
