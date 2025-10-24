@@ -8,8 +8,11 @@ from db import get_collections
 from rec_core import build_match, score_item, reasons, fallback_parse_query_to_filters, combined_text
 from vertex_nlu import parse_query_to_filters_with_vertex
 
-# at the top of app_streamlit.py, right after st.set_page_config(...)
+from rec_core import fallback_parse_query_to_filters
+from vertex_guard import cached_ttl_parse
+import streamlit as st, time
 import os, streamlit as st
+
 APP_PIN = os.getenv("APP_PIN")  # set in Cloud Run env
 
 if APP_PIN:
@@ -22,6 +25,26 @@ if APP_PIN:
             st.session_state.authed = True
             st.rerun()
         st.stop()
+
+MAX_CALLS_PER_SESSION = 10
+
+if "vertex_calls" not in st.session_state:
+    st.session_state["vertex_calls"] = 0
+
+def parse_with_guard(q: str):
+    if not q.strip():
+        return {}
+    try:
+        if st.session_state["vertex_calls"] >= MAX_CALLS_PER_SESSION:
+            st.info("Vertex上限に到達: フォールバック解析を使用します。")
+            return fallback_parse_query_to_filters(q)
+        out = cached_ttl_parse(q, ttl_sec=600)
+        st.session_state["vertex_calls"] += 1
+        return out
+    except Exception as e:
+        st.warning(f"Vertex利用不可: フォールバック解析 ({e})")
+        return fallback_parse_query_to_filters(q)
+
 
 st.set_page_config(page_title="不動産レコメンド", layout="wide")
 
@@ -50,11 +73,10 @@ q = st.text_input("クエリ", placeholder="品川区で6000万円以下、駅�
 
 def collect_filters():
     f = {}
+    # ✨ Rate-limited Vertex call here
     if q.strip():
-        try:
-            f.update(parse_query_to_filters_with_vertex(q))
-        except Exception:
-            f.update(fallback_parse_query_to_filters(q))
+        f.update(parse_with_guard(q))
+
     print("Parsed filters from query:", f)
     # sidebar overrides
     if wards: f["wards"] = wards
