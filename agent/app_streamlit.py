@@ -8,6 +8,21 @@ from db import get_collections
 from rec_core import build_match, score_item, reasons, fallback_parse_query_to_filters, combined_text
 from vertex_nlu import parse_query_to_filters_with_vertex
 
+# at the top of app_streamlit.py, right after st.set_page_config(...)
+import os, streamlit as st
+APP_PIN = os.getenv("APP_PIN")  # set in Cloud Run env
+
+if APP_PIN:
+    if "authed" not in st.session_state:
+        st.session_state.authed = False
+    if not st.session_state.authed:
+        st.title("🔒 Private Demo")
+        pin = st.text_input("Enter PIN", type="password")
+        if st.button("Unlock") and pin == APP_PIN:
+            st.session_state.authed = True
+            st.rerun()
+        st.stop()
+
 st.set_page_config(page_title="不動産レコメンド", layout="wide")
 
 PROPS, EVENTS = get_collections()
