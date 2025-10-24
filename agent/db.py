@@ -1,5 +1,8 @@
-import os, pymongo
+import os
 from functools import lru_cache
+
+import pymongo
+
 
 @lru_cache(maxsize=1)
 def get_collections():
