@@ -4,9 +4,9 @@ import logger from './logger'
 
 import getItemDetails from './details'
 
-async function scrapePage (url: string): Promise<any[]> {
+async function scrapePage(url: string): Promise<any[]> {
   try {
-    const response = await axios.get(url)
+    const response = await axios.get(url, { timeout: 30000 })
     const htmlContent: string = response.data
 
     // Parse HTML using jsdom
@@ -22,7 +22,7 @@ async function scrapePage (url: string): Promise<any[]> {
     mother.forEach((child: any) => {
       items.push(getItemDetails(child))
     })
-
+    // console.log(items)
     return items
   } catch (error) {
     logger.error(`Error scraping ${String(url)}: ${String(error)}`)
