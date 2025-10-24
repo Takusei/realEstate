@@ -167,11 +167,17 @@ def render_cards(items, key_prefix=""):
 
             st.link_button("詳細を見る", it.get("url","#"))
 
-filters = collect_filters()
 if run_btn or q:
     st.subheader("おすすめ物件")
-    render_cards(recommend(filters), key_prefix="rec")
+    with st.spinner("物件を検索中..."):
+        filters = collect_filters()
+        recommended_items = recommend(filters)
+        render_cards(recommended_items, key_prefix="rec")
 
 if st.session_state.get("show_similar") and (sid := st.session_state.get("similar_id")):
     st.subheader("似た物件")
-    render_cards(similar_items(sid, filters), key_prefix="sim")
+    with st.spinner("似た物件を探しています..."):
+        # We need filters for the similar items search as well
+        filters = collect_filters()
+        similar_items_list = similar_items(sid, filters)
+        render_cards(similar_items_list, key_prefix="sim")
