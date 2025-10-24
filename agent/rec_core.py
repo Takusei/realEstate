@@ -1,23 +1,37 @@
 from typing import Dict, Any, List
 import re
 
-def build_match(f: Dict[str, Any]) -> Dict[str, Any]:
-    ands = []
-    if (v := f.get("budget_max")) is not None:
-        ands.append({"price_yen": {"$lte": int(v)}})
-    if (v := f.get("walk_max")) is not None:
-        ands.append({"station_walk_minutes": {"$lte": int(v)}})
-    if f.get("pet_ok") is True:
-        ands.append({"flags.pet_ok": True})
-    if (v := f.get("min_rooms")) is not None:
-        ands.append({"rooms": {"$gte": int(v)}})
-    if (v := f.get("min_area_sqm")) is not None:
-        ands.append({"area_sqm": {"$gte": float(v)}})
-    if wards := f.get("wards"):
-        ands.append({"address": {"$regex": "|".join(wards)}})
-    for k in f.get("must_have", []):
-        ands.append({f"flags.{k}": True})
-    return {"$and": ands} if ands else {}
+def build_match(filters: dict) -> dict:
+    match = {"$and": []}
+    if not filters:
+        return {}
+
+    if "budget_max" in filters:
+        match["$and"].append({"price_yen": {"$lte": filters["budget_max"]}})
+    if "wards" in filters and filters["wards"]:
+        match["$and"].append({"address": {"$regex": "|".join(filters["wards"])}})
+    if "walk_max" in filters:
+        match["$and"].append({"station_walk_minutes": {"$lte": filters["walk_max"]}})
+    if "min_rooms" in filters and filters["min_rooms"] > 0:
+        match["$and"].append({"rooms": {"$gte": filters["min_rooms"]}})
+    if "min_area_sqm" in filters:
+        match["$and"].append({"area_sqm": {"$gte": filters["min_area_sqm"]}})
+    if filters.get("pet_ok"):
+        match["$and"].append({"flags": "ペット可"})
+    if "must_have" in filters:
+        for flag in filters["must_have"]:
+            if flag == "balcony":
+                match["$and"].append({"flags": "バルコニー"})
+            elif flag == "south_facing":
+                match["$and"].append({"flags": "南向き"})
+            elif flag == "corner":
+                match["$and"].append({"flags": "角部屋"})
+            elif flag == "tower_mansion":
+                match["$and"].append({"name": {"$regex": "タワー"}})
+
+    if not match["$and"]:
+        return {}
+    return match
 
 def score_item(it: Dict[str, Any], f: Dict[str, Any]) -> float:
     price = it.get("price_yen") or 10**12

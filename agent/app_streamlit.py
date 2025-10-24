@@ -37,7 +37,6 @@ def collect_filters():
     f = {}
     if q.strip():
         try:
-            print("Using Vertex AI to parse query...", q)
             f.update(parse_query_to_filters_with_vertex(q))
         except Exception:
             f.update(fallback_parse_query_to_filters(q))
@@ -82,7 +81,6 @@ def recommend(filters):
         it["_score"] = score_item(it, filters)
         it["_reasons"] = reasons(it, filters)
     items.sort(key=lambda x: x["_score"], reverse=True)
-    print("Top recommended items:", items[:5])
     return items[:12]
 
 def similar_items(seed_id: str, filters):

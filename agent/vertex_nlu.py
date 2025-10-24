@@ -39,14 +39,12 @@ SYSTEM = (
 model = GenerativeModel("gemini-2.5-flash", system_instruction=SYSTEM)
 
 def parse_query_to_filters_with_vertex(query: str) -> Dict[str, Any]:
-    print("Using Vertex AI to parse query...", query)
     try:
         resp = model.generate_content(
             [{"role":"user","parts":[{"text": f"クエリ: {query}"}]}],
             tools=[tool],
             generation_config={"temperature":0.1},
         )
-        print("Vertex response:", resp)
         if not resp.candidates:
             print("No candidates returned from Vertex AI.")
             return {}
