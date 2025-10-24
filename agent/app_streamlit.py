@@ -102,13 +102,13 @@ def similar_items(seed_id: str, filters):
         it["_reasons"] = ["似ている説明/設備/駅情報（類似検索）"]
     return top
 
-def render_cards(items):
+def render_cards(items, key_prefix=""):
     cols = st.columns(3)
     for idx, it in enumerate(items):
         with cols[idx % 3]:
             image_url = it.get("image","")
             if image_url:
-              st.image(image_url, width='stretch')
+              st.image(image_url, width=500)
             else:
               st.text("No Image Available")
             st.markdown(f"**{it.get('name') or '(物件名なし)'}**")
@@ -122,24 +122,19 @@ def render_cards(items):
             st.markdown(f"価格: **{price_str}円**｜{size}｜間取り: {layout}")
             chips = " / ".join(it.get("_reasons", []))
             if chips: st.info(chips)
-            c1, c2, c3 = st.columns([1,1,1])
-            with c1:
-                if st.button("☆保存", key=f"save-{it['_id']}"):
-                    log_event(str(it["_id"]), "save"); st.toast("保存しました")
-            with c2:
-                if st.button("×非表示", key=f"hide-{it['_id']}"):
-                    log_event(str(it["_id"]), "hide"); st.toast("非表示にしました")
-            with c3:
-                if st.button("似た物件", key=f"sim-{it['_id']}"):
-                    st.session_state["similar_id"] = str(it["_id"])
-                    st.session_state["show_similar"] = True
+
+            button_key = f"{key_prefix}-sim-{it['_id']}"
+            if st.button("似た物件", key=button_key):
+                st.session_state["similar_id"] = str(it["_id"])
+                st.session_state["show_similar"] = True
+
             st.link_button("詳細を見る", it.get("url","#"))
 
 filters = collect_filters()
 if run_btn or q:
     st.subheader("おすすめ物件")
-    render_cards(recommend(filters))
+    render_cards(recommend(filters), key_prefix="rec")
 
 if st.session_state.get("show_similar") and (sid := st.session_state.get("similar_id")):
     st.subheader("似た物件")
-    render_cards(similar_items(sid, filters))
+    render_cards(similar_items(sid, filters), key_prefix="sim")

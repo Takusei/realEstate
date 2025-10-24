@@ -17,7 +17,7 @@ def build_match(filters: dict) -> dict:
     if "min_area_sqm" in filters:
         match["$and"].append({"area_sqm": {"$gte": filters["min_area_sqm"]}})
     if filters.get("pet_ok"):
-        match["$and"].append({"flags": "ペット可"})
+        match["$and"].append({"flags.pet_ok": True})
     if "must_have" in filters:
         for flag in filters["must_have"]:
             if flag == "balcony":
