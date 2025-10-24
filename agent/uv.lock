@@ -13,7 +13,6 @@ dependencies = [
     { name = "python-dotenv" },
     { name = "scikit-learn" },
     { name = "streamlit" },
-    { name = "vertexai" },
 ]
 
 [package.metadata]
@@ -24,7 +23,6 @@ requires-dist = [
     { name = "python-dotenv", specifier = ">=1.1.1" },
     { name = "scikit-learn", specifier = ">=1.7.2" },
     { name = "streamlit", specifier = ">=1.50.0" },
-    { name = "vertexai", specifier = ">=1.43.0" },
 ]
 
 [[package]]
@@ -1048,18 +1046,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/15/22/9ee70a2574a4f4599c47dd506532914ce044817c7752a79b6a51286319bc/urllib3-2.5.0.tar.gz", hash = "sha256:3fc47733c7e419d4bc3f6b3dc2b4f890bb743906a30d56ba4a5bfa4bbff92760", size = 393185, upload-time = "2025-06-18T14:07:41.644Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a7/c2/fe1e52489ae3122415c51f387e221dd0773709bad6c6cdaa599e8a2c5185/urllib3-2.5.0-py3-none-any.whl", hash = "sha256:e6b01673c0fa6a13e374b50871808eb3bf7046c4b125b216f6bf1cc604cff0dc", size = 129795, upload-time = "2025-06-18T14:07:40.39Z" },
-]
-
-[[package]]
-name = "vertexai"
-version = "1.43.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "google-cloud-aiplatform" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/76/73/ce7e141c6b89ff9e1d09c4a278dba5883fee8a3d4d48a817609dc628be7e/vertexai-1.43.0.tar.gz", hash = "sha256:c3646d1cc6cc7af78daa62cac2aed0bce13a0eb35e8a27ab23d1fadfb6c57752", size = 8389, upload-time = "2024-03-07T20:22:07.064Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/9f/fc/e1bd1f4bc7e5853faa1ccf67a825cc6fc3fafc90db58a222dda7fb2e898c/vertexai-1.43.0-py3-none-any.whl", hash = "sha256:2f53bc3d4c4a6610f70f63fcbc07c41fc45ff29c4fde09d65328eedbef90b642", size = 6427, upload-time = "2024-03-07T20:22:05.206Z" },
 ]
 
 [[package]]

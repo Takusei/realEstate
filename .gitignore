@@ -175,3 +175,7 @@ dist
 .DS_Store
 
 mongodb/data/
+
+.env
+
+__pycache__/

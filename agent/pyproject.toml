@@ -11,5 +11,4 @@ dependencies = [
     "python-dotenv>=1.1.1",
     "scikit-learn>=1.7.2",
     "streamlit>=1.50.0",
-    "vertexai>=1.43.0",
 ]
