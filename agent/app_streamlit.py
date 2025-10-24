@@ -1,6 +1,6 @@
-import os
 import time
 import uuid
+from logging import getLogger
 
 import streamlit as st
 from bson import ObjectId
@@ -16,19 +16,26 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from vertex_guard import cached_ttl_parse
 
-APP_PIN = os.getenv("APP_PIN")  # set in Cloud Run env
+logger = getLogger(__name__)
 
-if APP_PIN:
-    if "authed" not in st.session_state:
-        st.session_state.authed = False
-    if not st.session_state.authed:
-        st.title("🔒 Private Demo")
-        pin = st.text_input("Enter PIN", type="password")
-        if st.button("Unlock") and pin == APP_PIN:
-            st.session_state.authed = True
-            st.rerun()
-        st.stop()
+## Login guard
+# APP_PIN = os.getenv("APP_PIN")  # set in Cloud Run env
 
+# if APP_PIN:
+#     if "authed" not in st.session_state:
+#         st.session_state.authed = False
+#     if not st.session_state.authed:
+#         st.title("🔒 Private Demo")
+#         pin = st.text_input(
+#             "Please input the full name of the property owner, e.g., John Smith",
+#             type="password",
+#         )
+#         if st.button("Unlock") and pin.lower() == APP_PIN.lower():
+#             st.session_state.authed = True
+#             st.rerun()
+#         st.stop()
+
+# Rate limit Vertex calls
 MAX_CALLS_PER_SESSION = 10
 
 if "vertex_calls" not in st.session_state:
@@ -37,6 +44,7 @@ if "vertex_calls" not in st.session_state:
 
 def parse_with_guard(q: str):
     if not q.strip():
+        logger.info("Empty query received for parsing.")
         return {}
     try:
         if st.session_state["vertex_calls"] >= MAX_CALLS_PER_SESSION:
@@ -50,13 +58,23 @@ def parse_with_guard(q: str):
         return fallback_parse_query_to_filters(q)
 
 
-st.set_page_config(page_title="不動産レコメンド", layout="wide")
+st.set_page_config(page_title="Real Estate Recommendation", layout="wide")
 
 PROPS, EVENTS = get_collections()
 if "user_id" not in st.session_state:
     st.session_state["user_id"] = str(uuid.uuid4())[:8]
 
-st.title("🏠 不動産レコメンド（デモ）")
+st.title("🏠 Real Estate Recommendation (Demo)")
+st.markdown(
+    """This is a demo application for real estate recommendation using Vertex AI, 
+    while leveraging MongoDB for data storage.  
+    Currently supports only ***Japanese*** language queries, and focused on ***[Tokyo, Ōimachi Line](https://suumo.jp/jj/common/ichiran/JJ901FC004/?initFlg=1&seniFlg=1&pc=30&ar=030&ra=030013&rnTmp=0215&kb=0&xb=0&newflg=0&km=1&rn=0215&bs=010&bs=011&bs=020)*** area.
+    """
+)
+st.markdown("### 検索条件を入力してください")
+st.markdown(
+    ":material/add_notes: サイドバーでの絞り込み条件は、クエリ解析結果を上書きします。"
+)
 st.caption("例：「品川区で6000万円以下、駅徒歩10分以内、ペット可、1LDK以上」")
 
 with st.sidebar:
@@ -66,12 +84,8 @@ with st.sidebar:
         [
             "品川区",
             "目黒区",
-            "港区",
-            "渋谷区",
             "世田谷区",
             "大田区",
-            "中央区",
-            "千代田区",
         ],
     )
     budget_max_man = st.number_input("予算上限（万円）", min_value=0, step=100, value=0)
@@ -101,7 +115,7 @@ def collect_filters():
     if q.strip():
         f.update(parse_with_guard(q))
 
-    print("Parsed filters from query:", f)
+    logger.info(f"Parsed filters from query: {f}")
     # sidebar overrides
     if wards:
         f["wards"] = wards
@@ -125,6 +139,7 @@ def collect_filters():
         must.append("tower_mansion")
     if must:
         f["must_have"] = must
+    logger.info(f"Final collected filters: {f}")
     return f
 
 
@@ -264,6 +279,7 @@ if run_btn or q:
     st.subheader("おすすめ物件")
     with st.spinner("物件を検索中..."):
         filters = collect_filters()
+        st.info(f"適用されたフィルター: {filters}")
         recommended_items = recommend(filters)
         render_cards(recommended_items, key_prefix="rec")
 

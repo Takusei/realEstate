@@ -1,42 +1,48 @@
 import os
 from typing import Any, Dict
 
-import vertexai
-from vertexai.generative_models import FunctionDeclaration, GenerativeModel, Tool
+from google import genai
+from google.genai import types
 
-# Set your project + region
-vertexai.init(
+# ---- Client (Vertex mode; uses project/location like your old code) ----
+client = genai.Client(
+    vertexai=True,
     project=os.environ.get("PROJECT_ID", "dev-projects-476011"),
     location="asia-northeast1",
 )
 
-fn = FunctionDeclaration(
+# ---- Function declaration & tool (schema equivalent to your original) ----
+extract_filters_fn = types.FunctionDeclaration(
     name="extract_filters",
     description="Extract structured real-estate filters from Japanese text.",
-    parameters={
-        "type": "object",
-        "properties": {
-            "budget_max": {
-                "type": "number",
-                "description": "Budget upper bound in yen",
-            },
-            "wards": {"type": "array", "items": {"type": "string"}},
-            "walk_max": {"type": "number"},
-            "pet_ok": {"type": "boolean"},
-            "min_rooms": {"type": "number"},
-            "min_area_sqm": {"type": "number"},
-            "must_have": {
-                "type": "array",
-                "items": {
-                    "type": "string",
-                    "enum": ["balcony", "south_facing", "corner", "tower_mansion"],
-                },
-            },
+    parameters=types.Schema(
+        type="OBJECT",
+        properties={
+            "budget_max": types.Schema(
+                type="NUMBER",
+                description="Budget upper bound in yen",
+            ),
+            "wards": types.Schema(
+                type="ARRAY",
+                items=types.Schema(type="STRING"),
+            ),
+            "walk_max": types.Schema(type="NUMBER"),
+            "pet_ok": types.Schema(type="BOOLEAN"),
+            "min_rooms": types.Schema(type="NUMBER"),
+            "min_area_sqm": types.Schema(type="NUMBER"),
+            "must_have": types.Schema(
+                type="ARRAY",
+                items=types.Schema(
+                    type="STRING",
+                    enum=["balcony", "south_facing", "corner", "tower_mansion"],
+                ),
+            ),
         },
-        "additionalProperties": False,
-    },
+        additional_properties=False,
+    ),
 )
-tool = Tool(function_declarations=[fn])
+
+tool = types.Tool(function_declarations=[extract_filters_fn])
 
 SYSTEM = (
     "あなたは日本の不動産検索条件を抽出するアシスタントです。"
@@ -46,25 +52,36 @@ SYSTEM = (
     "出力は必ずextract_filters関数を呼ぶこと。"
 )
 
-model = GenerativeModel("gemini-2.5-flash", system_instruction=SYSTEM)
-
 
 def parse_query_to_filters_with_vertex(query: str) -> Dict[str, Any]:
+    """
+    Generates a function call to `extract_filters` and returns its arguments as a dict.
+    Mirrors the behavior of your previous Vertex SDK code.
+    """
     try:
-        resp = model.generate_content(
-            [{"role": "user", "parts": [{"text": f"クエリ: {query}"}]}],
-            tools=[tool],
-            generation_config={"temperature": 0.1},
+        resp = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=f"クエリ: {query}",
+            config=types.GenerateContentConfig(
+                system_instruction=SYSTEM,
+                tools=[tool],  # manual declaration; model returns a function call
+                temperature=0.1,
+            ),
         )
-        if not resp.candidates:
-            print("No candidates returned from Vertex AI.")
+        # When tools are declared manually, the SDK exposes function calls here:
+        # - resp.function_calls: flat list of function-call parts (convenient)
+        # - resp.candidates[0].content.parts: raw parts (if you prefer to scan)
+        if not getattr(resp, "function_calls", None):
+            # No function call produced
             return {}
-        parts = resp.candidates[0].content.parts
-        for p in parts:
-            fc = getattr(p, "function_call", None)
-            if fc and fc.name == "extract_filters":
-                return dict(fc.args)
-    except Exception as e:
-        print(f"An error occurred during the Vertex AI API call: {e}")
 
-    return {}
+        # Find the first call to extract_filters and return its args
+        for fc in resp.function_calls:
+            if fc.name == "extract_filters":
+                # fc.args is a dict-like object already
+                return dict(fc.args)
+
+        return {}
+    except Exception as e:
+        print(f"An error occurred during the Google GenAI API call: {e}")
+        return {}
