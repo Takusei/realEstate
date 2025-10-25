@@ -68,6 +68,13 @@ st.markdown(
     Currently supports only ***Japanese*** language queries, and focused on ***[Tokyo, Ōimachi Line](https://suumo.jp/jj/common/ichiran/JJ901FC004/?initFlg=1&seniFlg=1&pc=30&ar=030&ra=030013&rnTmp=0215&kb=0&xb=0&newflg=0&km=1&rn=0215&bs=010&bs=011&bs=020)*** area.
     """
 )
+st.markdown(
+    """
+    - :material/laptop_mac: Tech stack: VertexAI, MongoDB, GCP
+    - :material/folder_data: All real estate data sourced from SUUMO
+    - :material/person_heart: Developed by [Zesheng Cai (Jaycen)](https://www.linkedin.com/in/jaycencai)
+    """
+)
 st.markdown("### 検索条件を入力してください")
 st.markdown(
     ":material/add_notes: サイドバーでの絞り込み条件は、クエリ解析結果を上書きします。"
@@ -103,9 +110,15 @@ with st.sidebar:
     tower_ok = st.checkbox("タワマン")
     run_btn = st.button("検索")
 
-q = st.text_input(
-    "検索クエリ(自然言語可)", placeholder="自由が丘駅から徒歩10分の物件を教えてください"
-)
+col1, col2 = st.columns([5, 1])
+with col1:
+    q = st.text_input(
+        "検索クエリ(自然言語可)",
+        placeholder="自由が丘駅から徒歩10分の物件を教えてください",
+        label_visibility="collapsed",
+    )
+with col2:
+    search_btn = st.button("検索実行", use_container_width=True)
 
 
 def collect_filters():
@@ -288,13 +301,16 @@ def render_cards(items, key_prefix=""):
             st.link_button("詳細を見る", it.get("url", "#"))
 
 
-if run_btn or q:
-    st.subheader("おすすめ物件")
-    with st.spinner("物件を検索中..."):
-        filters = collect_filters()
-        st.info(f"適用されたフィルター: {filters}")
-        recommended_items = recommend(filters)
-        render_cards(recommended_items, key_prefix="rec")
+if run_btn or search_btn:
+    if not run_btn and q.strip() == "":
+        st.warning("検索クエリを入力してください。")
+    else:
+        st.subheader("おすすめ物件")
+        with st.spinner("物件を検索中..."):
+            filters = collect_filters()
+            st.info(f"適用されたフィルター: {filters}")
+            recommended_items = recommend(filters)
+            render_cards(recommended_items, key_prefix="rec")
 
 if st.session_state.get("show_similar") and (sid := st.session_state.get("similar_id")):
     st.subheader("似た物件")
