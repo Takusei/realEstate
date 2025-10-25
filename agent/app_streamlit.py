@@ -60,6 +60,9 @@ st.set_page_config(page_title="Real Estate Recommendation", layout="wide")
 PROPS, EVENTS = get_collections()
 if "user_id" not in st.session_state:
     st.session_state["user_id"] = str(uuid.uuid4())[:8]
+if "search_run" not in st.session_state:
+    st.session_state["search_run"] = False
+
 
 st.title("🏠 Real Estate Recommendation")
 st.markdown(
@@ -182,23 +185,24 @@ def recommend(filters):
     match = build_match(filters)
     cursor = PROPS.find(
         match,
-        {
-            "name": 1,
-            "address": 1,
-            "image": 1,
-            "url": 1,
-            "price_yen": 1,
-            "area_sqm": 1,
-            "rooms": 1,
-            "ldk": 1,
-            "layout_raw": 1,
-            "size": 1,
-            "station_name": 1,
-            "station_walk_minutes": 1,
-            "flags": 1,
-            "description": 1,
-        },
-    ).limit(250)
+        # Get only necessary fields if needed
+        # {
+        #     "name": 1,
+        #     "address": 1,
+        #     "image": 1,
+        #     "url": 1,
+        #     "price_yen": 1,
+        #     "area_sqm": 1,
+        #     "rooms": 1,
+        #     "ldk": 1,
+        #     "layout_raw": 1,
+        #     "size": 1,
+        #     "station_name": 1,
+        #     "station_walk_minutes": 1,
+        #     "flags": 1,
+        #     "description": 1,
+        # },
+    ).limit(1000)
 
     seen_names = set()
     unique_items = []
@@ -296,27 +300,39 @@ def render_cards(items, key_prefix=""):
 
             button_key = f"{key_prefix}-sim-{it['_id']}"
             if st.button("似た物件", key=button_key, use_container_width=True):
+                print("here", it["_id"])
                 st.session_state["similar_id"] = str(it["_id"])
                 st.session_state["show_similar"] = True
+                st.rerun()
 
             st.link_button("詳細を見る", it.get("url", "#"), use_container_width=True)
 
 
 if run_btn or search_btn:
+    st.session_state["search_run"] = True
+    st.session_state["show_similar"] = False  # Reset similar view on new search
     if not run_btn and q.strip() == "":
         st.warning("検索クエリを入力してください。")
+        st.session_state["search_run"] = False  # Don't show results if query is empty
     else:
-        st.subheader("おすすめ物件")
         with st.spinner("物件を検索中..."):
             filters = collect_filters()
-            st.info(f"適用されたフィルター: {filters}")
+            st.session_state["last_filters"] = filters
             recommended_items = recommend(filters)
-            render_cards(recommended_items, key_prefix="rec")
+            st.session_state["recommended_items"] = recommended_items
+
+if st.session_state.get("search_run") and not st.session_state["show_similar"]:
+    st.info(f"適用されたフィルター: {st.session_state.get('last_filters', {})}")
+    st.subheader("おすすめ物件")
+    render_cards(st.session_state.get("recommended_items", []), key_prefix="rec")
 
 if st.session_state.get("show_similar") and (sid := st.session_state.get("similar_id")):
     st.subheader("似た物件")
     with st.spinner("似た物件を探しています..."):
-        # We need filters for the similar items search as well
-        filters = collect_filters()
+        filters = st.session_state.get("last_filters", {})
         similar_items_list = similar_items(sid, filters)
         render_cards(similar_items_list, key_prefix="sim")
+
+    if st.button("検索結果に戻る", use_container_width=True):
+        st.session_state["show_similar"] = False
+        st.rerun()
