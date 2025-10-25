@@ -72,7 +72,9 @@ st.markdown("### 検索条件を入力してください")
 st.markdown(
     ":material/add_notes: サイドバーでの絞り込み条件は、クエリ解析結果を上書きします。"
 )
-st.caption("例：「品川区で6000万円以下、駅徒歩10分以内、ペット可、1LDK以上」")
+st.caption(
+    "例：「自由が丘駅から徒歩10分の物件を教えてください」,「品川区で6000万円以下、駅徒歩10分以内、ペット可、1LDK以上」, "
+)
 
 with st.sidebar:
     st.header("🔎 絞り込み（任意）")
@@ -102,7 +104,7 @@ with st.sidebar:
     run_btn = st.button("検索")
 
 q = st.text_input(
-    "検索クエリ", placeholder="品川区で6000万円以下、駅徒歩10分以内、ペット可、1LDK以上"
+    "検索クエリ(自然言語可)", placeholder="自由が丘駅から徒歩10分の物件を教えてください"
 )
 
 
