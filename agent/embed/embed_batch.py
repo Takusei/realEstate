@@ -1,5 +1,7 @@
 # embed_batch_genai.py
 import os
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List
 
 import pymongo
@@ -7,73 +9,212 @@ from google import genai
 from google.genai import types
 from search_text import build_search_text
 
-# --- Config ---
+# ---------------------------
+# Config
+# ---------------------------
 PROJECT_ID = os.getenv("PROJECT_ID")
+LOCATION = os.getenv("GOOGLE_LOCATION", "asia-northeast1")
+
 DB_NAME = os.getenv("DB_NAME", "suumo")
 COLL = os.getenv("MONGO_COLLECTION_NAME", "suumo")
-LOCATION = os.getenv("GOOGLE_LOCATION", "asia-northeast1")
-EMBED_MODEL = os.getenv("EMBED_MODEL", "text-embedding-005")
-BATCH_SIZE = int(os.getenv("EMBED_BATCH_SIZE", "64"))
 MONGO_URI = os.environ["MONGO_URI"]
 
-# --- Google GenAI client (Vertex mode) ---
+EMBED_MODEL = os.getenv("EMBED_MODEL", "text-multilingual-embedding-002")
+BATCH_SIZE = int(os.getenv("EMBED_BATCH_SIZE", "64"))
+EMBED_MAX_WORKERS = int(os.getenv("EMBED_MAX_WORKERS", "8"))
+EMBED_TASK_TYPE = os.getenv(
+    "EMBED_TASK_TYPE", "RETRIEVAL_DOCUMENT"
+)  # or RETRIEVAL_QUERY
+
+# ---------------------------
+# Client (Vertex routing)
+# ---------------------------
 client = genai.Client(vertexai=True, project=PROJECT_ID, location=LOCATION)
 
 
-# --- Helpers ---
-def _make_embed_req(text: str) -> types.Content:
-    return types.Content(role="user", parts=[types.Part.from_text(text)])
-
-
-def _extract_embedding(obj) -> List[float]:
-    """Extract embedding vector safely across SDK shapes."""
-    if hasattr(obj, "values"):
-        return list(obj.values)
-    if hasattr(obj, "embedding") and hasattr(obj.embedding, "values"):
-        return list(obj.embedding.values)
-    if isinstance(obj, dict):
-        if "values" in obj:
+# ---------------------------
+# Helpers
+# ---------------------------
+def _extract_embedding_any(resp) -> List[float]:
+    """
+    Normalize different response shapes into a single embedding vector.
+    Handles:
+      - Batch: resp.embeddings -> [Embedding], resp.responses -> [Embedding], or list
+      - Single: resp.embedding (Embedding) or Embedding
+      - Dict-ish responses
+    """
+    # Batch-like: list of embeddings
+    if isinstance(resp, list) and resp:
+        obj = resp[0]
+        if hasattr(obj, "values"):
+            return list(obj.values)
+        if isinstance(obj, dict) and "values" in obj:
             return list(obj["values"])
-        if "embedding" in obj and "values" in obj["embedding"]:
-            return list(obj["embedding"]["values"])
-    raise ValueError(f"Cannot extract embedding from object: {obj}")
+
+    # Batch object with `.embeddings`
+    if hasattr(resp, "embeddings") and resp.embeddings:
+        obj = resp.embeddings[0]
+        if hasattr(obj, "values"):
+            return list(obj.values)
+
+    # Batch object with `.responses`
+    if hasattr(resp, "responses") and resp.responses:
+        obj = resp.responses[0]
+        # Some SDKs keep the Embedding under `.embedding`
+        if hasattr(obj, "embedding") and hasattr(obj.embedding, "values"):
+            return list(obj.embedding.values)
+        if hasattr(obj, "values"):
+            return list(obj.values)
+
+    # Single object with `.embedding`
+    if hasattr(resp, "embedding") and hasattr(resp.embedding, "values"):
+        return list(resp.embedding.values)
+
+    # Single object is itself an Embedding
+    if hasattr(resp, "values"):
+        return list(resp.values)
+
+    # Dict fallbacks
+    if isinstance(resp, dict):
+        if (
+            "embedding" in resp
+            and isinstance(resp["embedding"], dict)
+            and "values" in resp["embedding"]
+        ):
+            return list(resp["embedding"]["values"])
+        if "values" in resp:
+            return list(resp["values"])
+
+    raise ValueError(f"Unrecognized embedding response shape: {type(resp)} -> {resp}")
+
+
+def _embed_single(text: str, retries: int = 3, backoff: float = 0.7) -> List[float]:
+    """
+    Embed one string. Tries multiple call signatures for broad SDK compatibility.
+    Returns [] on failure (keeps position alignment).
+    """
+    for attempt in range(retries):
+        try:
+            cfg = types.EmbedContentConfig(task_type=EMBED_TASK_TYPE)
+
+            # Prefer the most common newer signature: contents=[str]
+            if hasattr(client.models, "embed_content"):
+                try:
+                    resp = client.models.embed_content(
+                        model=EMBED_MODEL,
+                        contents=[text],  # <-- note: contents (list)
+                        config=cfg,
+                    )
+                    return _extract_embedding_any(resp)
+                except TypeError:
+                    # Some builds want `content=` (single string)
+                    resp = client.models.embed_content(
+                        model=EMBED_MODEL,
+                        content=text,  # <-- single string
+                        config=cfg,
+                    )
+                    return _extract_embedding_any(resp)
+
+            # Older/alternate method name: embed(...)
+            if hasattr(client.models, "embed"):
+                try:
+                    resp = client.models.embed(
+                        model=EMBED_MODEL,
+                        contents=[text],
+                        config=cfg,
+                    )
+                    return _extract_embedding_any(resp)
+                except TypeError:
+                    resp = client.models.embed(
+                        model=EMBED_MODEL,
+                        content=text,
+                        config=cfg,
+                    )
+                    return _extract_embedding_any(resp)
+
+            # Very old namespace: client.embeddings.embed_content(...)
+            if hasattr(client, "embeddings") and hasattr(
+                client.embeddings, "embed_content"
+            ):
+                try:
+                    resp = client.embeddings.embed_content(
+                        model=EMBED_MODEL,
+                        contents=[text],
+                        config=cfg,
+                    )
+                    return _extract_embedding_any(resp)
+                except TypeError:
+                    resp = client.embeddings.embed_content(
+                        model=EMBED_MODEL,
+                        content=text,
+                        config=cfg,
+                    )
+                    return _extract_embedding_any(resp)
+
+            # If we reach here, the installed SDK is unexpected
+            raise AttributeError(
+                "No compatible embed method found on this google-genai version."
+            )
+
+        except Exception as e:
+            if attempt == retries - 1:
+                print(f"[embed_single] failed after {retries} attempts: {e}")
+                return []
+            time.sleep(backoff * (2**attempt))
+
+    return []
 
 
 def embed_texts(texts: List[str]) -> List[List[float]]:
     """
-    Batch embed text using text-embedding-005.
-    Falls back to per-text embedding if batch fails.
+    Returns one embedding vector per input text.
+    - If batch API exists in the installed SDK, use it.
+    - Otherwise, do parallel single calls with retries.
     """
-    try:
-        # 🧠 Batch API (fast & cheaper)
-        response = client.models.batch_embed_contents(
-            model=EMBED_MODEL,
-            contents=[_make_embed_req(t) for t in texts],
-            config=types.EmbedContentConfig(task_type="RETRIEVAL_DOCUMENT"),
-        )
-        return [_extract_embedding(e) for e in response.embeddings]
+    cfg = types.EmbedContentConfig(task_type=EMBED_TASK_TYPE)
 
-    except Exception as e:
-        print(
-            f"[embed_texts] batch_embed_contents failed, fallback to single calls: {e}"
-        )
-
-    vectors = []
-    for t in texts:
+    # Try batch if available
+    if hasattr(client.models, "batch_embed_contents"):
         try:
-            r = client.models.embed_content(
+            # Many builds accept list[str] directly under `contents`
+            resp = client.models.batch_embed_contents(
                 model=EMBED_MODEL,
-                content=_make_embed_req(t),
-                config=types.EmbedContentConfig(task_type="RETRIEVAL_DOCUMENT"),
+                contents=texts,
+                config=cfg,
             )
-            vectors.append(_extract_embedding(r.embedding))
-        except Exception as e2:
-            print(f"[embed_texts] single embed failed: {e2}")
-            vectors.append([])
-    return vectors
+            # Normalize batch response
+            if hasattr(resp, "embeddings") and resp.embeddings:
+                return [list(e.values) for e in resp.embeddings]
+            if hasattr(resp, "responses") and resp.responses:
+                out = []
+                for r in resp.responses:
+                    out.append(_extract_embedding_any(r))
+                return out
+            if isinstance(resp, list):
+                return [_extract_embedding_any(r) for r in resp]
+            print("[embed_texts] batch returned no embeddings; falling back.")
+        except Exception as e:
+            print(f"[embed_texts] batch_embed_contents failed; falling back: {e}")
+
+    # Fallback: parallel single calls (works across all known versions)
+    out = [None] * len(texts)
+
+    def work(ix_text):
+        ix, t = ix_text
+        out[ix] = _embed_single(t)
+
+    with ThreadPoolExecutor(max_workers=EMBED_MAX_WORKERS) as ex:
+        futures = [ex.submit(work, (i, t)) for i, t in enumerate(texts)]
+        for _ in as_completed(futures):
+            pass
+
+    # Replace any None with [] (shouldn't happen)
+    return [v if isinstance(v, list) else [] for v in out]
 
 
-# --- Main ETL ---
+# ---------------------------
+# Main ETL
+# ---------------------------
 def main():
     mongo = pymongo.MongoClient(MONGO_URI)
     col = mongo[DB_NAME][COLL]
@@ -99,7 +240,9 @@ def main():
     def flush_batch():
         nonlocal batch_ids, batch_txts
         if not batch_txts:
+            print("No texts to embed in this batch.")
             return
+        print(f"Embedding batch of {len(batch_txts)} items...")
         vecs = embed_texts(batch_txts)
         for _id, v in zip(batch_ids, vecs):
             if v:  # only update if embedding succeeded
@@ -108,7 +251,7 @@ def main():
 
     for d in cur:
         batch_ids.append(d["_id"])
-        # ✂️ Safety truncation to avoid overly long input
+        # Safety truncation (avoid overlong inputs)
         batch_txts.append(build_search_text(d)[:7000])
         if len(batch_txts) >= BATCH_SIZE:
             flush_batch()
