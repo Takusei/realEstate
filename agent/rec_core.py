@@ -79,6 +79,8 @@ def reasons(it: Dict[str, Any], f: Dict[str, Any]) -> List[str]:
     r = []
     if f.get("wards") and any(w in it.get("address", "") for w in f["wards"]):
         r.append(f"ご希望エリア（{'・'.join(f['wards'])}）")
+    if f.get("station_name") and f["station_name"] in it.get("station_name", ""):
+        r.append(f"ご希望駅（{f['station_name']}）")
     if (
         f.get("budget_max")
         and it.get("price_yen")
@@ -91,6 +93,12 @@ def reasons(it: Dict[str, Any], f: Dict[str, Any]) -> List[str]:
         and it["station_walk_minutes"] <= f["walk_max"]
     ):
         r.append(f"駅徒歩{it['station_walk_minutes']}分")
+    if (
+        f.get("min_rooms")
+        and it.get("rooms") is not None
+        and it["rooms"] >= f["min_rooms"]
+    ):
+        r.append(f"部屋数{it['rooms']}以上")
     if f.get("pet_ok") and it.get("flags", {}).get("pet_ok"):
         r.append("ペット可")
     if f.get("bal_ok") and it.get("flags", {}).get("balcony"):
