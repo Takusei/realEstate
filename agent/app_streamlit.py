@@ -27,7 +27,7 @@ if APP_PIN:
     if not st.session_state.authed:
         st.title("🔒 Private Demo")
         pin = st.text_input(
-            "Please input the full name of the property owner, e.g., John Smith",
+            "Please input the full name of the property owner, e.g., JohnSmith",
             type="password",
         )
         if st.button("Unlock") and pin.lower() == APP_PIN.lower():
@@ -37,9 +37,12 @@ if APP_PIN:
 
 # Rate limit Vertex calls
 MAX_CALLS_PER_SESSION = 10
+MAX_SIMILAR_CLICKS = 5
 
 if "vertex_calls" not in st.session_state:
     st.session_state["vertex_calls"] = 0
+if "similar_clicks" not in st.session_state:
+    st.session_state["similar_clicks"] = 0
 
 
 def parse_with_guard(q: str):
@@ -227,7 +230,6 @@ def recommend(filters):
 def ui_similar(seed_id: str, filters: dict):
     # 1) try vector search
     vec = similar_items_by_vector(PROPS, seed_id, filters)
-    print(f"Vector search returned {len(vec)} items.")
     if vec:
         return vec
     # 2) fallback to your existing TF-IDF
@@ -313,9 +315,13 @@ def render_cards(items, key_prefix=""):
 
             button_key = f"{key_prefix}-sim-{it['_id']}"
             if st.button("似た物件", key=button_key, use_container_width=True):
-                st.session_state["similar_id"] = str(it["_id"])
-                st.session_state["show_similar"] = True
-                st.rerun()
+                if st.session_state["similar_clicks"] >= MAX_SIMILAR_CLICKS:
+                    st.toast("類似物件の検索上限に達しました。", icon="⚠️")
+                else:
+                    st.session_state["similar_clicks"] += 1
+                    st.session_state["similar_id"] = str(it["_id"])
+                    st.session_state["show_similar"] = True
+                    st.rerun()
 
             st.link_button("詳細を見る", it.get("url", "#"), use_container_width=True)
 
