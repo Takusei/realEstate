@@ -1,0 +1,10 @@
+[project]
+name = "embed"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12, <3.13"
+dependencies = [
+    "google-genai>=1.46.0",
+    "pymongo>=4.15.3",
+]
