@@ -11,6 +11,7 @@ from rec_core import (
     reasons,
     score_item,
 )
+from similar_vector import similar_items_by_vector
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from vertex_guard import cached_ttl_parse
@@ -221,6 +222,15 @@ def recommend(filters):
     return items[:12]
 
 
+def ui_similar(seed_id: str, filters: dict):
+    # 1) try vector search
+    vec = similar_items_by_vector(PROPS, seed_id, filters)
+    if vec:
+        return vec
+    # 2) fallback to your existing TF-IDF
+    return similar_items(seed_id, filters)
+
+
 def similar_items(seed_id: str, filters):
     seed = PROPS.find_one(
         {"_id": ObjectId(seed_id)},
@@ -329,7 +339,7 @@ if st.session_state.get("show_similar") and (sid := st.session_state.get("simila
     st.subheader("似た物件")
     with st.spinner("似た物件を探しています..."):
         filters = st.session_state.get("last_filters", {})
-        similar_items_list = similar_items(sid, filters)
+        similar_items_list = ui_similar(sid, filters)
         render_cards(similar_items_list, key_prefix="sim")
 
     if st.button("検索結果に戻る", use_container_width=True):
