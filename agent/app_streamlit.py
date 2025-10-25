@@ -1,3 +1,4 @@
+import os
 import time
 import uuid
 
@@ -17,22 +18,22 @@ from sklearn.metrics.pairwise import cosine_similarity
 from streamlit_scroll_to_top import scroll_to_here
 from vertex_guard import cached_ttl_parse
 
-## Login guard
-# APP_PIN = os.getenv("APP_PIN")  # set in Cloud Run env
+# Login guard
+APP_PIN = os.getenv("APP_PIN")  # set in Cloud Run env
 
-# if APP_PIN:
-#     if "authed" not in st.session_state:
-#         st.session_state.authed = False
-#     if not st.session_state.authed:
-#         st.title("🔒 Private Demo")
-#         pin = st.text_input(
-#             "Please input the full name of the property owner, e.g., John Smith",
-#             type="password",
-#         )
-#         if st.button("Unlock") and pin.lower() == APP_PIN.lower():
-#             st.session_state.authed = True
-#             st.rerun()
-#         st.stop()
+if APP_PIN:
+    if "authed" not in st.session_state:
+        st.session_state.authed = False
+    if not st.session_state.authed:
+        st.title("🔒 Private Demo")
+        pin = st.text_input(
+            "Please input the full name of the property owner, e.g., John Smith",
+            type="password",
+        )
+        if st.button("Unlock") and pin.lower() == APP_PIN.lower():
+            st.session_state.authed = True
+            st.rerun()
+        st.stop()
 
 # Rate limit Vertex calls
 MAX_CALLS_PER_SESSION = 10
@@ -75,7 +76,7 @@ st.markdown(
 )
 st.markdown(
     """
-    - :material/function: *Functionality*: Search and recommendation of real estate properties based on natural language.
+    - :material/function: *Functionality*: Search similar and recommendation items based on AI.
     - :material/laptop_mac: *Tech stack*: VertexAI, MongoDB, GCP
     - :material/folder_data: *Data source*: All real estate data sourced from SUUMO
     - :material/person_heart: *Developer*: [Zesheng Cai (Jaycen)](https://www.linkedin.com/in/jaycencai)
