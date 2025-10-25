@@ -61,6 +61,10 @@ gcloud secrets create MONGO_COLLECTION_NAME --replication-policy="automatic" --d
 gcloud secrets create START_PATH --replication-policy="automatic" --data-file=- <<< "https://suumo.jp/jj/common/ichiran/JJ901FC004/?initFlg=1&seniFlg=1&pc=30&ar=030&ra=030013&rnTmp=0215&kb=0&xb=0&newflg=0&km=1&rn=0215&bs=010&bs=011&bs=020"
 gcloud secrets create BASE_PATH --replication-policy="automatic" --data-file=- <<< "https://suumo.jp"
 ```
+Note on how to update:
+```
+echo -n "suumo" | gcloud secrets versions add MONGO_DB_NAME --data-file=-
+```
 
 ---
 
