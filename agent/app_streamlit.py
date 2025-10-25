@@ -70,9 +70,10 @@ st.markdown(
 )
 st.markdown(
     """
-    - :material/laptop_mac: Tech stack: VertexAI, MongoDB, GCP
-    - :material/folder_data: All real estate data sourced from SUUMO
-    - :material/person_heart: Developed by [Zesheng Cai (Jaycen)](https://www.linkedin.com/in/jaycencai)
+    - :material/function: *Functionality*: Search and recommendation of real estate properties based on user queries
+    - :material/laptop_mac: *Tech stack*: VertexAI, MongoDB, GCP
+    - :material/folder_data: *Data source*: All real estate data sourced from SUUMO
+    - :material/person_heart: *Developer*: [Zesheng Cai (Jaycen)](https://www.linkedin.com/in/jaycencai)
     """
 )
 st.markdown("### 検索条件を入力してください")
@@ -115,7 +116,7 @@ with col1:
     q = st.text_input(
         "検索クエリ(自然言語可)",
         placeholder="自由が丘駅から徒歩10分の物件を教えてください",
-        label_visibility="collapsed",
+        # label_visibility="collapsed",
     )
 with col2:
     search_btn = st.button("検索実行", use_container_width=True)
@@ -126,7 +127,7 @@ def collect_filters():
     # ✨ Rate-limited Vertex call here
     if q.strip():
         f.update(parse_with_guard(q))
-
+    st.info(f"自然言語の解析結果: {f}")
     # sidebar overrides
     if wards:
         f["wards"].extend(wards)
