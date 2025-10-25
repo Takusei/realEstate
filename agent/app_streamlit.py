@@ -61,7 +61,7 @@ PROPS, EVENTS = get_collections()
 if "user_id" not in st.session_state:
     st.session_state["user_id"] = str(uuid.uuid4())[:8]
 
-st.title("🏠 Real Estate Recommendation (Demo)")
+st.title("🏠 Real Estate Recommendation")
 st.markdown(
     """This is a demo application for real estate recommendation using Vertex AI, 
     while leveraging MongoDB for data storage.  
@@ -70,7 +70,7 @@ st.markdown(
 )
 st.markdown(
     """
-    - :material/function: *Functionality*: Search and recommendation of real estate properties based on user queries
+    - :material/function: *Functionality*: Search and recommendation of real estate properties based on natural language.
     - :material/laptop_mac: *Tech stack*: VertexAI, MongoDB, GCP
     - :material/folder_data: *Data source*: All real estate data sourced from SUUMO
     - :material/person_heart: *Developer*: [Zesheng Cai (Jaycen)](https://www.linkedin.com/in/jaycencai)
