@@ -225,6 +225,7 @@ def recommend(filters):
 def ui_similar(seed_id: str, filters: dict):
     # 1) try vector search
     vec = similar_items_by_vector(PROPS, seed_id, filters)
+    print(f"Vector search returned {len(vec)} items.")
     if vec:
         return vec
     # 2) fallback to your existing TF-IDF

@@ -6,11 +6,11 @@ from rec_core import build_match
 
 
 def similar_items_by_vector(
-    PROPS, seed_id: str, filters: Dict[str, Any], index_name="rec_index"
+    PROPS, seed_id: str, filters: Dict[str, Any], index_name="rec_search"
 ) -> List[dict]:
-    print(f"Finding items similar to ID {seed_id} with filters: {filters}")
     seed = PROPS.find_one({"_id": ObjectId(seed_id)}, {"embedding": 1})
     if not seed or not seed.get("embedding"):
+        print(f"No embedding found for seed_id: {seed_id}, using TF-IDF fallback.")
         return []  # caller can fallback to TF-IDF
 
     match = build_match(filters)  # from your rec_core
@@ -43,5 +43,6 @@ def similar_items_by_vector(
     ]
     items = list(PROPS.aggregate(pipeline))
     for it in items:
-        it["_reasons"] = ["似ている説明/設備/駅情報（ベクトル）"]
+        score = it.get("vector_score", 0.0)
+        it["_reasons"] = [f"似ている物件（ベクトル検索 スコア: {score:.3f}）"]
     return items[:9]
