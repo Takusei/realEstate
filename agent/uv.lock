@@ -14,6 +14,7 @@ dependencies = [
     { name = "python-dotenv" },
     { name = "scikit-learn" },
     { name = "streamlit" },
+    { name = "streamlit-scroll-to-top" },
 ]
 
 [package.metadata]
@@ -25,6 +26,7 @@ requires-dist = [
     { name = "python-dotenv", specifier = ">=1.1.1" },
     { name = "scikit-learn", specifier = ">=1.7.2" },
     { name = "streamlit", specifier = ">=1.50.0" },
+    { name = "streamlit-scroll-to-top", specifier = ">=0.0.4" },
 ]
 
 [[package]]
@@ -963,6 +965,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/d6/f6/f7d3a0146577c1918439d3163707040f7111a7d2e7e2c73fa7adeb169c06/streamlit-1.50.0.tar.gz", hash = "sha256:87221d568aac585274a05ef18a378b03df332b93e08103fffcf3cd84d852af46", size = 9664808, upload-time = "2025-09-23T19:24:00.31Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/2a/38/991bbf9fa3ed3d9c8e69265fc449bdaade8131c7f0f750dbd388c3c477dc/streamlit-1.50.0-py3-none-any.whl", hash = "sha256:9403b8f94c0a89f80cf679c2fcc803d9a6951e0fba542e7611995de3f67b4bb3", size = 10068477, upload-time = "2025-09-23T19:23:57.245Z" },
+]
+
+[[package]]
+name = "streamlit-scroll-to-top"
+version = "0.0.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "streamlit" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d2/06/26f13270ea77f0fddec15b11955dad1c1130897c87f6a4c3040221051ef7/streamlit_scroll_to_top-0.0.4.tar.gz", hash = "sha256:148bbaa31ca91444a94d4b1f846bcdc0de5f6b2eccaf9e815805754892a9d7f6", size = 402901, upload-time = "2024-12-12T00:40:04.916Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ce/89/9099f3c5fab4b7ecef73a16bb80a59d6501d5b8ae904df162700460d15e1/streamlit_scroll_to_top-0.0.4-py3-none-any.whl", hash = "sha256:4e894ee1377fd0d65c799c39463d382d9a72fb9c592dde566ea3f6c109154128", size = 2273951, upload-time = "2024-12-12T00:40:00.918Z" },
 ]
 
 [[package]]

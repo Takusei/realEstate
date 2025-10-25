@@ -14,6 +14,7 @@ from rec_core import (
 from similar_vector import similar_items_by_vector
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+from streamlit_scroll_to_top import scroll_to_here
 from vertex_guard import cached_ttl_parse
 
 ## Login guard
@@ -337,6 +338,7 @@ if st.session_state.get("search_run") and not st.session_state["show_similar"]:
     render_cards(st.session_state.get("recommended_items", []), key_prefix="rec")
 
 if st.session_state.get("show_similar") and (sid := st.session_state.get("similar_id")):
+    scroll_to_here(0, key="top")
     st.subheader("似た物件")
     with st.spinner("似た物件を探しています..."):
         filters = st.session_state.get("last_filters", {})
@@ -345,4 +347,5 @@ if st.session_state.get("show_similar") and (sid := st.session_state.get("simila
 
     if st.button("検索結果に戻る", use_container_width=True):
         st.session_state["show_similar"] = False
+        scroll_to_here(0, key="top")
         st.rerun()
