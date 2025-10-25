@@ -116,7 +116,7 @@ with col1:
     q = st.text_input(
         "検索クエリ(自然言語可)",
         placeholder="自由が丘駅から徒歩10分の物件を教えてください",
-        # label_visibility="collapsed",
+        label_visibility="collapsed",
     )
 with col2:
     search_btn = st.button("検索実行", use_container_width=True)
@@ -274,7 +274,7 @@ def render_cards(items, key_prefix=""):
         with cols[idx % 3]:
             image_url = it.get("image", "")
             if image_url:
-                st.image(image_url, width=500)
+                st.image(image_url, width="stretch")
             else:
                 st.text("No Image Available")
             st.markdown(f"**{it.get('name') or '(物件名なし)'}**")
@@ -295,11 +295,11 @@ def render_cards(items, key_prefix=""):
                 st.info(chips)
 
             button_key = f"{key_prefix}-sim-{it['_id']}"
-            if st.button("似た物件", key=button_key):
+            if st.button("似た物件", key=button_key, use_container_width=True):
                 st.session_state["similar_id"] = str(it["_id"])
                 st.session_state["show_similar"] = True
 
-            st.link_button("詳細を見る", it.get("url", "#"))
+            st.link_button("詳細を見る", it.get("url", "#"), use_container_width=True)
 
 
 if run_btn or search_btn:
