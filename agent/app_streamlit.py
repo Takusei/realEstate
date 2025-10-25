@@ -300,7 +300,6 @@ def render_cards(items, key_prefix=""):
 
             button_key = f"{key_prefix}-sim-{it['_id']}"
             if st.button("似た物件", key=button_key, use_container_width=True):
-                print("here", it["_id"])
                 st.session_state["similar_id"] = str(it["_id"])
                 st.session_state["show_similar"] = True
                 st.rerun()
