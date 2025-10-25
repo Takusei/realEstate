@@ -250,6 +250,9 @@ def similar_items(seed_id: str, filters):
 
 
 def render_cards(items, key_prefix=""):
+    if not items:
+        st.info("該当する物件が見つかりませんでした。")
+        return
     cols = st.columns(3)
     for idx, it in enumerate(items):
         with cols[idx % 3]:
