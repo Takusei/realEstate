@@ -27,16 +27,14 @@ extract_filters_fn = types.FunctionDeclaration(
                 items=types.Schema(type="STRING"),
             ),
             "walk_max": types.Schema(type="NUMBER"),
+            "station_name": types.Schema(type="STRING"),
             "pet_ok": types.Schema(type="BOOLEAN"),
             "min_rooms": types.Schema(type="NUMBER"),
             "min_area_sqm": types.Schema(type="NUMBER"),
-            "must_have": types.Schema(
-                type="ARRAY",
-                items=types.Schema(
-                    type="STRING",
-                    enum=["balcony", "south_facing", "corner", "tower_mansion"],
-                ),
-            ),
+            "balcony": types.Schema(type="BOOLEAN"),
+            "south_facing": types.Schema(type="BOOLEAN"),
+            "corner": types.Schema(type="BOOLEAN"),
+            "tower_mansion": types.Schema(type="BOOLEAN"),
         },
         additional_properties=False,
     ),
@@ -49,6 +47,8 @@ SYSTEM = (
     "金額正規化: 6000万=60,000,000円, 1.2億=120,000,000円。"
     "徒歩10分以内→walk_max=10。1LDK以上→min_rooms=1。"
     "品川区などの区名をwardsに。タワマン→tower_mansion。"
+    "電車の駅名があればstation_nameに入れてください。"
+    "もし電車の駅名があれば、その駅名を検索し、対応する区名をwardsに追加してください。"
     "出力は必ずextract_filters関数を呼ぶこと。"
 )
 

@@ -1,6 +1,5 @@
 import time
 import uuid
-from logging import getLogger
 
 import streamlit as st
 from bson import ObjectId
@@ -15,8 +14,6 @@ from rec_core import (
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from vertex_guard import cached_ttl_parse
-
-logger = getLogger(__name__)
 
 ## Login guard
 # APP_PIN = os.getenv("APP_PIN")  # set in Cloud Run env
@@ -44,7 +41,7 @@ if "vertex_calls" not in st.session_state:
 
 def parse_with_guard(q: str):
     if not q.strip():
-        logger.info("Empty query received for parsing.")
+        print("Empty query received for parsing.")
         return {}
     try:
         if st.session_state["vertex_calls"] >= MAX_CALLS_PER_SESSION:
@@ -98,14 +95,14 @@ with st.sidebar:
     )
     min_area = st.number_input("最小専有面積（㎡）", min_value=0, step=5, value=0)
     pet_ok = st.checkbox("ペット可", value=False)
-    must_bal = st.checkbox("バルコニー")
-    must_south = st.checkbox("南向き")
-    must_corner = st.checkbox("角部屋")
-    must_tower = st.checkbox("タワマン")
+    bal_ok = st.checkbox("バルコニー")
+    south_ok = st.checkbox("南向き")
+    corner_ok = st.checkbox("角部屋")
+    tower_ok = st.checkbox("タワマン")
     run_btn = st.button("検索")
 
 q = st.text_input(
-    "クエリ", placeholder="品川区で6000万円以下、駅徒歩10分以内、ペット可、1LDK以上"
+    "検索クエリ", placeholder="品川区で6000万円以下、駅徒歩10分以内、ペット可、1LDK以上"
 )
 
 
@@ -115,31 +112,42 @@ def collect_filters():
     if q.strip():
         f.update(parse_with_guard(q))
 
-    logger.info(f"Parsed filters from query: {f}")
     # sidebar overrides
     if wards:
-        f["wards"] = wards
+        f["wards"].extend(wards)
     if budget_max_man and budget_max_man > 0:
-        f["budget_max"] = budget_max_man * 10_000
+        side_budget_max = budget_max_man * 10_000
+        if "budget_max" in f:
+            f["budget_max"] = min(f["budget_max"], side_budget_max)
+        else:
+            f["budget_max"] = side_budget_max
     if walk_max:
-        f["walk_max"] = walk_max
-    f["min_rooms"] = min_rooms
+        side_walk_max = walk_max
+        if "walk_max" in f:
+            f["walk_max"] = min(f["walk_max"], side_walk_max)
+        else:
+            f["walk_max"] = side_walk_max
+    if min_rooms:
+        if "min_rooms" in f:
+            f["min_rooms"] = max(f["min_rooms"], min_rooms)
+        else:
+            f["min_rooms"] = min_rooms
+
     if min_area and min_area > 0:
-        f["min_area_sqm"] = min_area
+        if "min_area_sqm" in f:
+            f["min_area_sqm"] = max(f["min_area_sqm"], min_area)
+        else:
+            f["min_area_sqm"] = min_area
     if pet_ok:
         f["pet_ok"] = True
-    must = []
-    if must_bal:
-        must.append("balcony")
-    if must_south:
-        must.append("south_facing")
-    if must_corner:
-        must.append("corner")
-    if must_tower:
-        must.append("tower_mansion")
-    if must:
-        f["must_have"] = must
-    logger.info(f"Final collected filters: {f}")
+    if bal_ok:
+        f["balcony"] = True
+    if south_ok:
+        f["south_facing"] = True
+    if corner_ok:
+        f["corner"] = True
+    if tower_ok:
+        f["tower_mansion"] = True
     return f
 
 
