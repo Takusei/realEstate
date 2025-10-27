@@ -1,0 +1,50 @@
+{
+  "fields": [
+    {
+      "numDimensions": 768,
+      "path": "embedding",
+      "similarity": "cosine",
+      "type": "vector"
+    },
+    {
+      "path": "price_yen",
+      "type": "filter"
+    },
+    {
+      "path": "station_walk_minutes",
+      "type": "filter"
+    },
+    {
+      "path": "flags.balcony",
+      "type": "filter"
+    },
+    {
+      "path": "flags.pet_ok",
+      "type": "filter"
+    },
+    {
+      "path": "flags.south_facing",
+      "type": "filter"
+    },
+    {
+      "path": "flags.tower_mansion",
+      "type": "filter"
+    },
+    {
+      "path": "flags.corner",
+      "type": "filter"
+    },
+    {
+      "path": "station_name",
+      "type": "filter"
+    },
+    {
+      "path": "station_line",
+      "type": "filter"
+    },
+    {
+      "path": "rooms",
+      "type": "filter"
+    }
+  ]
+}

@@ -35,7 +35,10 @@ if APP_PIN:
             "Please input the full name of the property owner, e.g., JohnSmith",
             type="password",
         )
-        if st.button("Unlock") and pin.lower() == APP_PIN.lower():
+        if st.button("Unlock") and (
+            pin.lower() == APP_PIN.lower()
+            or pin.replace(" ", "") == APP_PIN.replace(" ", "")
+        ):
             st.session_state.authed = True
             st.rerun()
         st.stop()
@@ -355,6 +358,11 @@ if st.session_state.get("search_run") and not st.session_state["show_similar"]:
     st.markdown("---")
     st.subheader("AIによる要約と推奨（RAG）")
     if st.button("AIの要約を見る", use_container_width=True):
+        if True:
+            st.info(
+                "Currently disabled for demo purposes as MongoDB Atlas free tier has limitations."
+            )
+            st.stop()
         if not q.strip():
             st.warning("検索クエリを入力してください。")
             st.stop()
