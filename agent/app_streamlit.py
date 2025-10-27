@@ -37,7 +37,7 @@ if APP_PIN:
         )
         if st.button("Unlock") and (
             pin.lower() == APP_PIN.lower()
-            or pin.replace(" ", "") == APP_PIN.replace(" ", "")
+            or pin.replace(" ", "").lower() == APP_PIN.replace(" ", "").lower()
         ):
             st.session_state.authed = True
             st.rerun()
