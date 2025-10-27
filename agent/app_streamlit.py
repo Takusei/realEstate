@@ -351,6 +351,40 @@ if st.session_state.get("search_run") and not st.session_state["show_similar"]:
     st.subheader("おすすめ物件")
     render_cards(st.session_state.get("recommended_items", []), key_prefix="rec")
 
+    # --- RAG summary section ---
+    st.markdown("---")
+    st.subheader("AIによる要約と推奨（RAG）")
+    if st.button("AIの要約を見る", use_container_width=True):
+        if not q.strip():
+            st.warning("検索クエリを入力してください。")
+            st.stop()
+        from rag_generate import generate_summary
+        from rag_retrieval import retrieve_semantic
+
+        with st.spinner("AIが候補を要約中..."):
+            # Retrieve (semantic) using the user's query text + filters
+            filters = st.session_state["last_filters"]
+            sem_items = retrieve_semantic(PROPS, q, filters, k=300, limit=20)
+            print(f"RAG retrieved {len(sem_items)} items.")
+            # Optionally re-rank with your business score
+            for it in sem_items:
+                it["_score"] = 0.55 * it.get("vector_score", 0) + 0.45 * score_item(
+                    it, filters
+                )
+                it["_reasons"] = reasons(it, filters)
+            sem_items.sort(key=lambda x: x["_score"], reverse=True)
+            st.markdown("**AIが抽出した候補（上位）**")
+            render_cards(sem_items[:9], key_prefix="rag")
+
+            # Generate summary (true RAG)
+            try:
+                summary_json = generate_summary(
+                    q or "ユーザー条件未入力", sem_items[:12]
+                )
+                st.code(summary_json, language="json")
+            except Exception as e:
+                st.warning(f"要約生成に失敗しました: {e}")
+
 if st.session_state.get("show_similar") and (sid := st.session_state.get("similar_id")):
     scroll_to_here(0, key="top")
     st.subheader("似た物件")
