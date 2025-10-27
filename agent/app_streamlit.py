@@ -18,6 +18,11 @@ from sklearn.metrics.pairwise import cosine_similarity
 from streamlit_scroll_to_top import scroll_to_here
 from vertex_guard import cached_ttl_parse
 
+st.set_page_config(
+    page_title="Real Estate Recommendation Agent (Demo)",
+    page_icon="🐈‍⬛",
+)
+
 # Login guard
 APP_PIN = os.getenv("APP_PIN")  # set in Cloud Run env
 
@@ -34,6 +39,10 @@ if APP_PIN:
             st.session_state.authed = True
             st.rerun()
         st.stop()
+
+st.set_page_config(
+    layout="wide",
+)
 
 # Rate limit Vertex calls
 MAX_CALLS_PER_SESSION = 10
@@ -60,8 +69,6 @@ def parse_with_guard(q: str):
         st.warning(f"Vertex利用不可: フォールバック解析 ({e})")
         return fallback_parse_query_to_filters(q)
 
-
-st.set_page_config(page_title="Real Estate Recommendation", layout="wide")
 
 PROPS, EVENTS = get_collections()
 if "user_id" not in st.session_state:
