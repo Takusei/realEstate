@@ -2,6 +2,7 @@
 import os
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime, timedelta
 from typing import List
 
 import pymongo
@@ -218,6 +219,15 @@ def embed_texts(texts: List[str]) -> List[List[float]]:
 def main():
     mongo = pymongo.MongoClient(MONGO_URI)
     col = mongo[DB_NAME][COLL]
+
+    # --- Delete documents older than 1 month ---
+    one_month_ago_dt = datetime.now() - timedelta(days=30)
+    one_month_ago_str = one_month_ago_dt.strftime("%Y-%m-%d")
+    delete_result = col.delete_many({"updateDate": {"$lt": one_month_ago_str}})
+    print(
+        f"Removed {delete_result.deleted_count} documents with updateDate older than 1 month."
+    )
+    # -----------------------------------------
 
     cur = col.find(
         {"$or": [{"embedding": {"$exists": False}}, {"embedding": None}]},
