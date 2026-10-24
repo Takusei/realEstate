@@ -179,3 +179,6 @@ mongodb/data/
 .env
 
 __pycache__/
+
+# GitHub Actions Workload Identity credential files
+gha-creds-*.json

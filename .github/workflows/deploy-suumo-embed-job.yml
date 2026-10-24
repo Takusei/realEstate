@@ -1,0 +1,30 @@
+# Uses the latest shared workflow on main; deployment is manual only.
+name: Deploy suumo-embed-job
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: release-suumo-embed-job
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    uses: Takusei/gcp-platform/.github/workflows/deploy-cloud-run.yml@main
+    with:
+      project_id: dev-projects-476011
+      region: asia-northeast1
+      kind: job
+      target: suumo-embed-job
+      registry_repository: rec-embed
+      image_name: suumo-embed
+      build_context: embed
+      dockerfile: embed/Dockerfile
+    secrets:
+      workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      deploy_service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}

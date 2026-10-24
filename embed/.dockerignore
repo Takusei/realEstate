@@ -1,0 +1,21 @@
+# Local credentials, runtime data, and dependencies never enter release images.
+.git
+.env
+.env.*
+**/.env
+**/.env.*
+.venv
+**/.venv
+node_modules
+**/node_modules
+__pycache__
+**/__pycache__
+*.pyc
+gha-creds-*.json
+**/gha-creds-*.json
+*.tfstate
+*.tfstate.*
+terraform
+*.db
+*.sqlite
+*.sqlite3

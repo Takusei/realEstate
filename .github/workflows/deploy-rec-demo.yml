@@ -1,0 +1,30 @@
+# Uses the latest shared workflow on main; deployment is manual only.
+name: Deploy rec-demo
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: release-rec-demo
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    uses: Takusei/gcp-platform/.github/workflows/deploy-cloud-run.yml@main
+    with:
+      project_id: dev-projects-476011
+      region: asia-northeast1
+      kind: service
+      target: rec-demo
+      registry_repository: rec-agent
+      image_name: suumo-agent
+      build_context: agent
+      dockerfile: agent/Dockerfile
+    secrets:
+      workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      deploy_service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
